@@ -12,6 +12,7 @@ import {
   HiOutlineShieldCheck,
   HiOutlineUser
 } from 'react-icons/hi';
+import docIntelIcon from '../assets/docintel-icon.png';
 import './Sidebar.css';
 
 const Sidebar = () => {
@@ -21,8 +22,15 @@ const Sidebar = () => {
   return (
     <div className="sidebar">
       <div className="sidebar-header">
-        <h2>DocIntel</h2>
-        <span className="subtitle">Document Intelligence</span>
+        <Link to="/dashboard" className="sidebar-brand-container" title="DocIntel - Store • Process • Analyze">
+          <img src={docIntelIcon} alt="DocIntel Icon" className="sidebar-brand-icon" />
+          <div className="sidebar-brand-text">
+            <span className="brand-name">
+              Doc<span className="brand-highlight">Intel</span>
+            </span>
+            <span className="brand-subtitle">Document Intelligence</span>
+          </div>
+        </Link>
       </div>
       
       <div className="role-indicator">
