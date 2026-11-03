@@ -97,21 +97,56 @@ api.interceptors.response.use(
       }
 
       if (url.includes('/users/profile')) {
-        const storedUser = localStorage.getItem('demo-user');
-        const user = storedUser ? JSON.parse(storedUser) : {
+        let storedUser = null;
+        try {
+          const raw = localStorage.getItem('demo-user');
+          if (raw) storedUser = JSON.parse(raw);
+        } catch (e) {}
+
+        const defaultUser = {
           id: 1,
-          name: 'Sarthak Padwal',
-          email: 'sarthakpadwal111@gmail.com',
+          name: 'John Doe',
+          email: 'admin@docintel.com',
           phone: '+1 (555) 019-8234',
           role: 'ADMIN',
-          department: 'Executive Technology',
+          department: 'Executive Administration',
           designation: 'Root System Administrator'
         };
+
+        const activeUser = { ...defaultUser, ...(storedUser || {}) };
+
+        // Handle PUT /users/profile (Edit Personal Details)
+        if (error.config?.method?.toLowerCase() === 'put') {
+          let updates = {};
+          try {
+            updates = typeof error.config.data === 'string' ? JSON.parse(error.config.data) : (error.config.data || {});
+          } catch (e) {}
+
+          const updatedUser = {
+            ...activeUser,
+            name: updates.name ? updates.name.trim() : activeUser.name,
+            phone: updates.phone !== undefined ? updates.phone.trim() : activeUser.phone,
+            department: updates.department !== undefined ? updates.department.trim() : activeUser.department,
+            designation: updates.designation !== undefined ? updates.designation.trim() : activeUser.designation
+          };
+
+          localStorage.setItem('demo-user', JSON.stringify(updatedUser));
+
+          return Promise.resolve({
+            data: {
+              success: true,
+              message: 'Profile updated successfully',
+              data: { user: updatedUser }
+            }
+          });
+        }
+
+        // Handle GET /users/profile
         return Promise.resolve({
           data: {
             success: true,
             data: {
-              user,
+              user: activeUser,
               stats: {
                 totalDocuments: 28,
                 pendingReview: 6,
@@ -124,9 +159,9 @@ api.interceptors.response.use(
                 scope: 'Global System & Repository Control',
                 privileges: [
                   'Full Document Lifecycle Control (Read/Write/Delete/Restore)',
-                  'AI OCR & Extraction Microservice Engine Oversight',
+                  'Intelligent Extraction Engine & Metadata Oversight',
                   'User Management & Role Permissions Administration',
-                  'Database Schema & System Chronometry Configuration',
+                  'Enterprise Workflow & Chronometry Configuration',
                   'Immutable Enterprise Audit Trail Inspection'
                 ]
               }

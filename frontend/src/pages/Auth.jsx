@@ -10,10 +10,11 @@ import {
   HiOutlineClock,
   HiOutlineSparkles,
   HiOutlineArrowRight,
-  HiOutlineCheckCircle,
   HiOutlineRefresh,
   HiOutlineLightningBolt,
-  HiOutlineCheck
+  HiOutlineCheck,
+  HiOutlineSearch,
+  HiOutlineDatabase
 } from 'react-icons/hi';
 import docIntelIcon from '../assets/docintel-icon.png';
 import './Auth.css';
@@ -34,7 +35,7 @@ const USER_DEPARTMENTS = [
   'Development',
   'Sales',
   'Human Resources',
-  'Distributors'
+  'Logistics'
 ];
 
 const USER_DESIGNATIONS = [
@@ -47,7 +48,8 @@ const USER_DESIGNATIONS = [
 
 const Auth = ({ initialMode = 'login' }) => {
   const [activeTab, setActiveTab] = useState(initialMode); // 'login' or 'signup'
-  const [showIntro, setShowIntro] = useState(false);
+  // introStage: 'splash' (2.5s logo animation) -> 'briefing' (10s full-screen overview) -> 'none' (split auth)
+  const [introStage, setIntroStage] = useState('none');
   const [countdown, setCountdown] = useState(10);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -57,14 +59,44 @@ const Auth = ({ initialMode = 'login' }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Check if first-time visit in this tab to display the 10s animated intro
+  // Check if first-time visit in this tab to display the 2-stage animated intro
   useEffect(() => {
     const hasSeenIntro = sessionStorage.getItem('docintel_intro_seen');
     if (!hasSeenIntro) {
-      setShowIntro(true);
+      setIntroStage('splash');
       sessionStorage.setItem('docintel_intro_seen', 'true');
     }
   }, []);
+
+  // Stage 1: 2.5-second Logo Splash Animation -> then automatically move to 'briefing'
+  useEffect(() => {
+    let splashTimer;
+    if (introStage === 'splash') {
+      splashTimer = setTimeout(() => {
+        setIntroStage('briefing');
+      }, 2600);
+    }
+    return () => clearTimeout(splashTimer);
+  }, [introStage]);
+
+  // Stage 2: 10-second Countdown for Platform Briefing
+  useEffect(() => {
+    let timer;
+    if (introStage === 'briefing') {
+      setCountdown(10);
+      timer = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            setIntroStage('none');
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [introStage]);
 
   // Sync active tab with route
   useEffect(() => {
@@ -74,25 +106,6 @@ const Auth = ({ initialMode = 'login' }) => {
       setActiveTab('login');
     }
   }, [location.pathname]);
-
-  // 10-second countdown for animated intro
-  useEffect(() => {
-    let timer;
-    if (showIntro) {
-      setCountdown(10);
-      timer = setInterval(() => {
-        setCountdown((prev) => {
-          if (prev <= 1) {
-            clearInterval(timer);
-            setShowIntro(false);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-    return () => clearInterval(timer);
-  }, [showIntro]);
 
   // Form states
   const [loginData, setLoginData] = useState({
@@ -181,20 +194,20 @@ const Auth = ({ initialMode = 'login' }) => {
     }
   };
 
-  // 1-Click Instant Demo Logins (works on localhost AND GitHub Pages)
+  // Instant Demo Logins (works offline, locally, and on GitHub Pages)
   const handleQuickDemo = async (roleType) => {
     setLoading(true);
     setError('');
     try {
       if (roleType === 'ADMIN') {
-        await login('sarthakpadwal111@gmail.com', 'password123');
+        await login('admin@docintel.com', 'password123');
       } else {
         await login('employee.user@docintel.com', 'password123');
       }
       navigate('/dashboard');
     } catch (err) {
-      setError('Demo login fallback triggered. Redirecting...');
-      setTimeout(() => navigate('/dashboard'), 500);
+      setError('Redirecting to dashboard...');
+      setTimeout(() => navigate('/dashboard'), 400);
     } finally {
       setLoading(false);
     }
@@ -203,87 +216,121 @@ const Auth = ({ initialMode = 'login' }) => {
   return (
     <div className="auth-master-wrapper">
       {/* ============================================================== */}
-      {/* 1. ANIMATED INTRO SCREEN / DOCINTEL GUIDE BANNER (10-SEC AUTO) */}
+      {/* 1. INITIAL 2.5-SECOND FULL-SCREEN LOGO ANIMATION (STAGE: SPLASH)*/}
       {/* ============================================================== */}
-      {showIntro && (
-        <div className="intro-overlay">
-          <div className="intro-backdrop-glow"></div>
-          
-          <div className="intro-content-container">
-            {/* Top Navigation in Splash */}
-            <div className="intro-top-bar">
-              <div className="intro-brand-pill">
-                <img src={docIntelIcon} alt="DocIntel Icon" className="intro-pill-icon" />
-                <span>DocIntel • Platform Briefing</span>
-              </div>
-              <button 
-                type="button" 
-                className="btn-skip-intro"
-                onClick={() => setShowIntro(false)}
-              >
-                Proceed to Portal Now <HiOutlineArrowRight size={16} />
-              </button>
+      {introStage === 'splash' && (
+        <div className="splash-fullscreen-cover" onClick={() => setIntroStage('briefing')}>
+          <div className="splash-ambient-aura"></div>
+          <div className="splash-center-content">
+            <div className="splash-logo-container">
+              <img src={docIntelIcon} alt="DocIntel Logo" className="splash-animated-logo" />
+              <div className="splash-scan-line"></div>
             </div>
+            <h1 className="splash-brand-title">
+              Doc<span className="text-cyan-brand">Intel</span>
+            </h1>
+            <p className="splash-brand-motto">DOCUMENT INTELLIGENCE PLATFORM</p>
+            <div className="splash-loader-bar">
+              <div className="splash-loader-progress"></div>
+            </div>
+            <span className="splash-skip-hint">Click anywhere to skip</span>
+          </div>
+        </div>
+      )}
 
-            {/* Central Animated Hero Box */}
-            <div className="intro-hero-showcase">
-              <div className="intro-logo-glow-wrapper">
-                <img src={docIntelIcon} alt="DocIntel" className="intro-pulse-logo" />
-                <div className="scanner-laser-line"></div>
+      {/* ============================================================== */}
+      {/* 2. FULL-SCREEN PLATFORM BRIEFING SCREEN (STAGE: BRIEFING)     */}
+      {/* ============================================================== */}
+      {introStage === 'briefing' && (
+        <div className="briefing-fullscreen-view">
+          {/* Header Bar */}
+          <div className="briefing-navbar">
+            <div className="briefing-brand-group">
+              <img src={docIntelIcon} alt="DocIntel Icon" className="briefing-nav-icon" />
+              <div>
+                <span className="briefing-nav-title">Doc<span className="text-cyan-brand">Intel</span></span>
+                <span className="briefing-nav-tag">Platform Overview</span>
               </div>
+            </div>
+            <button 
+              type="button" 
+              className="btn-skip-to-auth"
+              onClick={() => setIntroStage('none')}
+            >
+              Proceed to Sign In <HiOutlineArrowRight size={16} />
+            </button>
+          </div>
 
-              <h1 className="intro-hero-title">
-                Doc<span className="text-cyan-gradient">Intel</span>
+          {/* Central Full-Screen Hero & Executive Summary */}
+          <div className="briefing-main-canvas">
+            <div className="briefing-hero-header">
+              <div className="briefing-hero-icon-wrap">
+                <img src={docIntelIcon} alt="DocIntel" className="briefing-hero-logo" />
+              </div>
+              <h1 className="briefing-headline">
+                Centralized Document <span className="text-cyan-brand">Intelligence</span>
               </h1>
-              <p className="intro-hero-tagline">STORE • PROCESS • ANALYZE</p>
-              <p className="intro-hero-desc">
-                Next-generation Document Intelligence Platform engineered for automated OCR extraction, 
-                chronometry compliance, and role-governed document lifecycle management.
+              <p className="briefing-category-motto">STORE • PROCESS • ANALYZE</p>
+              <p className="briefing-lead-desc">
+                DocIntel is an enterprise platform engineered to eliminate manual documentation overhead. 
+                Seamlessly ingest business files, automatically extract critical metadata, monitor upcoming due dates, 
+                and maintain complete role-governed compliance across all departments.
               </p>
             </div>
 
-            {/* 3 Core Architecture Pillars Banner */}
-            <div className="intro-pillars-grid">
-              <div className="intro-pillar-card">
-                <div className="pillar-icon-box cyan-box">
-                  <HiOutlineDocumentText size={22} />
+            {/* 3 Core Value Pillars (Zero code / technical stack leaks) */}
+            <div className="briefing-pillars-row">
+              <div className="briefing-pillar-box">
+                <div className="pillar-icon-shield cyan-tint">
+                  <HiOutlineDocumentText size={24} />
                 </div>
-                <h3>01. Ingestion & Storage</h3>
-                <p>High-integrity PDF & image intake with checksum validation and structured metadata registration.</p>
+                <h3>01. Document Ingestion</h3>
+                <p>
+                  Centralize invoices, quotations, contracts, and tenders into a unified, secure repository with automated indexing.
+                </p>
+                <div className="pillar-metric-tag">Centralized Intake</div>
               </div>
 
-              <div className="intro-pillar-card">
-                <div className="pillar-icon-box purple-box">
-                  <HiOutlineSparkles size={22} />
+              <div className="briefing-pillar-box">
+                <div className="pillar-icon-shield purple-tint">
+                  <HiOutlineSparkles size={24} />
                 </div>
-                <h3>02. Python AI OCR</h3>
-                <p>FastAPI microservice extracting invoice numbers, vendors, total amounts, and dates in milliseconds.</p>
+                <h3>02. Intelligent Extraction</h3>
+                <p>
+                  Instantly extracts invoice numbers, vendor records, total amounts, and transaction dates without manual typing.
+                </p>
+                <div className="pillar-metric-tag">Zero Manual Entry</div>
               </div>
 
-              <div className="intro-pillar-card">
-                <div className="pillar-icon-box emerald-box">
-                  <HiOutlineClock size={22} />
+              <div className="briefing-pillar-box">
+                <div className="pillar-icon-shield emerald-tint">
+                  <HiOutlineClock size={24} />
                 </div>
                 <h3>03. Chronometry Radar</h3>
-                <p>Automated deadline calculations, overdue expiration alerts, and immutable audit chronometry.</p>
+                <p>
+                  Proactive milestone monitoring, due-date radar, and expiration alerts to ensure zero delayed approvals or penalties.
+                </p>
+                <div className="pillar-metric-tag">Milestone Tracking</div>
               </div>
             </div>
 
             {/* Progress Countdown Bar */}
-            <div className="intro-timer-section">
-              <div className="intro-timer-header">
-                <span className="mono">Entering DocIntel Portal in {countdown}s...</span>
+            <div className="briefing-footer-timer">
+              <div className="timer-status-row">
+                <span className="timer-text">
+                  Entering DocIntel Portal in <strong>{countdown}s</strong>...
+                </span>
                 <button 
                   type="button" 
-                  className="intro-forward-link" 
-                  onClick={() => setShowIntro(false)}
+                  className="timer-skip-action" 
+                  onClick={() => setIntroStage('none')}
                 >
-                  Skip & Enter Portal &rarr;
+                  Enter Portal Now &rarr;
                 </button>
               </div>
-              <div className="intro-progress-track">
+              <div className="timer-track-bar">
                 <div 
-                  className="intro-progress-bar"
+                  className="timer-fill-bar"
                   style={{ width: `${((10 - countdown) / 10) * 100}%` }}
                 ></div>
               </div>
@@ -293,10 +340,10 @@ const Auth = ({ initialMode = 'login' }) => {
       )}
 
       {/* ============================================================== */}
-      {/* 2. SPLIT-SCREEN AUTHENTICATION (LEFT HALF & RIGHT HALF)       */}
+      {/* 3. SPLIT-SCREEN AUTHENTICATION (LEFT HALF & RIGHT HALF)       */}
       {/* ============================================================== */}
       <div className="split-auth-container">
-        {/* ----------------- LEFT HALF: BRAND & SYSTEM BRIEFING ----------------- */}
+        {/* ----------------- LEFT HALF: BRAND & BUSINESS CAPABILITIES ----------------- */}
         <div className="auth-left-panel">
           <div className="left-panel-ambient"></div>
           
@@ -315,7 +362,7 @@ const Auth = ({ initialMode = 'login' }) => {
             {/* Main Value Proposition */}
             <div className="left-hero-body">
               <h2 className="left-statement">
-                Automate your enterprise document lifecycle with precision OCR & chronometry.
+                Automate your enterprise document lifecycle with precision extraction & chronometry.
               </h2>
               <p className="left-statement-desc">
                 DocIntel eliminates manual document review by extracting structured intelligence from invoices, 
@@ -328,8 +375,8 @@ const Auth = ({ initialMode = 'login' }) => {
               <div className="feature-row">
                 <div className="feature-check"><HiOutlineCheck size={16} /></div>
                 <div>
-                  <strong>Automated Python OCR Pipeline</strong>
-                  <span>High-speed attribute extraction and vendor recognition</span>
+                  <strong>Automated Data Extraction Pipeline</strong>
+                  <span>High-speed attribute extraction, vendor recognition, and total calculations</span>
                 </div>
               </div>
 
@@ -344,40 +391,40 @@ const Auth = ({ initialMode = 'login' }) => {
               <div className="feature-row">
                 <div className="feature-check"><HiOutlineCheck size={16} /></div>
                 <div>
-                  <strong>Sec-Lvl-4 Root Role Clearance</strong>
-                  <span>Multi-tier permission policies with immutable audit tracking</span>
+                  <strong>Role Clearance & Audit Governance</strong>
+                  <span>Multi-tier permission policies with immutable enterprise audit logs</span>
                 </div>
               </div>
             </div>
 
-            {/* Microservice Tech Stack Ribbon */}
-            <div className="tech-stack-ribbon">
-              <span className="tech-chip">React 19 Vite</span>
-              <span className="tech-chip">Node.js Express</span>
-              <span className="tech-chip">Python FastAPI</span>
-              <span className="tech-chip">MySQL 8.0</span>
+            {/* Business Value Highlights (Replaced all code/tech stack chips) */}
+            <div className="business-values-ribbon">
+              <span className="value-chip">✓ Zero Manual Data Entry</span>
+              <span className="value-chip">✓ Instant Attribute Search</span>
+              <span className="value-chip">✓ Automated Due-Date Tracking</span>
+              <span className="value-chip">✓ Multi-Department Security</span>
             </div>
 
             {/* Footer Status & Replay Tour */}
             <div className="left-panel-footer">
               <div className="engine-status-pill">
                 <span className="status-live-dot"></span>
-                Engine v4.8 Active &bull; Secure Protocol
+                DocIntel Core Active &bull; Enterprise Protocol
               </div>
               <button 
                 type="button" 
                 className="btn-replay-intro"
-                onClick={() => setShowIntro(true)}
+                onClick={() => setIntroStage('briefing')}
                 title="View animated DocIntel showcase & overview"
               >
                 <HiOutlineRefresh size={14} />
-                Replay Intro
+                Platform Overview
               </button>
             </div>
           </div>
         </div>
 
-        {/* ----------------- RIGHT HALF: PROPER AUTH FORMS (LOGIN / SIGNUP) ----------------- */}
+        {/* ----------------- RIGHT HALF: AUTH FORMS (LOGIN / SIGNUP) ----------------- */}
         <div className="auth-right-panel">
           <div className="auth-form-card">
             {/* Mode Switcher Tabs */}
@@ -421,7 +468,7 @@ const Auth = ({ initialMode = 'login' }) => {
                     className="form-input"
                     value={loginData.email}
                     onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
-                    placeholder="sarthakpadwal111@gmail.com"
+                    placeholder="john.doe@company.com"
                   />
                 </div>
 
@@ -460,7 +507,7 @@ const Auth = ({ initialMode = 'login' }) => {
                 <div className="demo-access-box">
                   <div className="demo-access-title">
                     <HiOutlineLightningBolt size={15} />
-                    <span>Instant Demo Access (GitHub & Sandbox Mode):</span>
+                    <span>Instant Demo Access:</span>
                   </div>
                   <div className="demo-buttons-grid">
                     <button 
@@ -469,7 +516,7 @@ const Auth = ({ initialMode = 'login' }) => {
                       onClick={() => handleQuickDemo('ADMIN')}
                     >
                       <HiOutlineShieldCheck size={16} />
-                      Sign In as Root Admin
+                      Sign In as Administrator
                     </button>
                     <button 
                       type="button" 
@@ -477,7 +524,7 @@ const Auth = ({ initialMode = 'login' }) => {
                       onClick={() => handleQuickDemo('USER')}
                     >
                       <HiOutlineUserGroup size={16} />
-                      Sign In as Employee
+                      Sign In as Staff Member
                     </button>
                   </div>
                 </div>
@@ -498,7 +545,7 @@ const Auth = ({ initialMode = 'login' }) => {
               <form onSubmit={handleSignupSubmit} className="auth-form-body">
                 <div className="form-header-text">
                   <h3>Create Your Account</h3>
-                  <p>Register as an Administrator or Departmental Employee.</p>
+                  <p>Register as an Administrator or Departmental Staff Member.</p>
                 </div>
 
                 <div className="form-group">
@@ -509,7 +556,7 @@ const Auth = ({ initialMode = 'login' }) => {
                     className="form-input"
                     value={signupData.name}
                     onChange={(e) => setSignupData({ ...signupData, name: e.target.value })}
-                    placeholder="e.g. Sarthak Padwal"
+                    placeholder="e.g. John Doe"
                   />
                 </div>
 
@@ -521,7 +568,7 @@ const Auth = ({ initialMode = 'login' }) => {
                     className="form-input"
                     value={signupData.email}
                     onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
-                    placeholder="sarthak111@gmail.com"
+                    placeholder="john.doe@company.com"
                   />
                 </div>
 
@@ -546,9 +593,9 @@ const Auth = ({ initialMode = 'login' }) => {
                     >
                       <div className="role-option-header">
                         <HiOutlineUserGroup size={18} className="role-icon" />
-                        <strong>Employee</strong>
+                        <strong>Staff Member</strong>
                       </div>
-                      <span className="role-desc">Ingestion, Search, Department Staff</span>
+                      <span className="role-desc">Ingestion, Search, Department Operations</span>
                     </div>
                   </div>
                 </div>

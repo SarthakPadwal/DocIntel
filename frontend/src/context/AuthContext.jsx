@@ -32,20 +32,20 @@ export const AuthProvider = ({ children }) => {
             } catch (e) {
               setUser({
                 id: 1,
-                name: 'Sarthak Padwal',
-                email: 'sarthakpadwal111@gmail.com',
+                name: 'John Doe',
+                email: 'admin@docintel.com',
                 role: 'ADMIN',
-                department: 'Executive Technology',
+                department: 'Executive Administration',
                 designation: 'Root System Administrator'
               });
             }
           } else {
             setUser({
               id: 1,
-              name: 'Sarthak Padwal',
-              email: 'sarthakpadwal111@gmail.com',
+              name: 'John Doe',
+              email: 'admin@docintel.com',
               role: 'ADMIN',
-              department: 'Executive Technology',
+              department: 'Executive Administration',
               designation: 'Root System Administrator'
             });
           }
@@ -61,10 +61,10 @@ export const AuthProvider = ({ children }) => {
           if (isGitHubPages) {
             setUser({
               id: 1,
-              name: 'Sarthak Padwal',
-              email: 'sarthakpadwal111@gmail.com',
+              name: 'John Doe',
+              email: 'admin@docintel.com',
               role: 'ADMIN',
-              department: 'Executive Technology',
+              department: 'Executive Administration',
               designation: 'Root System Administrator'
             });
           } else {
@@ -93,10 +93,10 @@ export const AuthProvider = ({ children }) => {
         const isAdmin = !email || !email.toLowerCase().includes('user');
         const demoUser = {
           id: 1,
-          name: email && email.includes('@') ? email.split('@')[0] : 'Sarthak Padwal',
-          email: email || 'sarthakpadwal111@gmail.com',
+          name: email && email.includes('@') ? (email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1)) : 'John Doe',
+          email: email || 'admin@docintel.com',
           role: isAdmin ? 'ADMIN' : 'USER',
-          department: isAdmin ? 'Executive Technology' : 'Operations',
+          department: isAdmin ? 'Executive Administration' : 'Operations',
           designation: isAdmin ? 'Root System Administrator' : 'Senior Specialist'
         };
         const demoToken = 'demo-token-' + Date.now();
@@ -123,8 +123,8 @@ export const AuthProvider = ({ children }) => {
         // Fallback for static GitHub Pages showcase
         const demoUser = {
           id: Math.floor(Math.random() * 9000) + 1000,
-          name: name || 'Sarthak',
-          email: email,
+          name: name || 'Enterprise User',
+          email: email || 'user@docintel.com',
           role: role || 'ADMIN',
           department: department || (role === 'ADMIN' ? 'Executive' : 'Operations'),
           designation: designation || (role === 'ADMIN' ? 'Compliance Officer' : 'Team Member')
@@ -150,9 +150,7 @@ export const AuthProvider = ({ children }) => {
   const updateUser = (newUserData) => {
     setUser(prev => {
       const updated = { ...prev, ...newUserData };
-      if (localStorage.getItem('token')?.startsWith('demo-token-')) {
-        localStorage.setItem('demo-user', JSON.stringify(updated));
-      }
+      localStorage.setItem('demo-user', JSON.stringify(updated));
       return updated;
     });
   };

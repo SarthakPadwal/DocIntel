@@ -709,7 +709,7 @@ const DocumentDetails = () => {
               <div className="modal-footer">
                 <span className="text-xs text-muted flex items-center gap-1">
                   <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10b981' }}></span>
-                  Direct MySQL synchronization
+                  Instant Data synchronization
                 </span>
                 <div className="flex items-center gap-2">
                   <button 
