@@ -216,20 +216,22 @@
 /* Toast alert on top */
 .login-alert-banner {
   position: fixed;
-  top: 70px;
-  right: 24px;
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(185, 28, 28, 0.95));
+  top: 12px;
+  right: 190px;
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.95), rgba(185, 28, 28, 0.95));
   color: #fff;
-  padding: 12px 18px;
-  border-radius: 8px;
-  box-shadow: 0 10px 25px rgba(239, 68, 68, 0.4);
-  z-index: 1000;
+  padding: 8px 14px;
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  z-index: 2000;
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-size: 13px;
+  gap: 10px;
+  font-size: 12px;
   cursor: pointer;
   animation: slide-in 0.3s ease-out;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  max-width: 450px;
 }
 
 @keyframes slide-in {

@@ -23,11 +23,11 @@ const AppLayout = ({ children }) => {
   if (!isAuthenticated) return children;
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', width: '100%', overflowX: 'hidden' }}>
       <Sidebar />
-      <div style={{ flex: 1, marginLeft: '250px', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ flex: 1, marginLeft: '250px', display: 'flex', flexDirection: 'column', minWidth: 0, width: 'calc(100% - 250px)', maxWidth: 'calc(100vw - 250px)', overflowX: 'hidden' }}>
         <Navbar />
-        <main style={{ flex: 1, padding: '24px', backgroundColor: 'var(--bg-primary)' }}>
+        <main style={{ flex: 1, padding: '24px', backgroundColor: 'var(--bg-primary)', minWidth: 0, width: '100%', boxSizing: 'border-box' }}>
           {children}
         </main>
       </div>

@@ -3,7 +3,7 @@ import { HiOutlineSearch, HiX } from 'react-icons/hi';
 
 const SearchBar = ({ value, onChange, placeholder = 'Search documents...' }) => {
   return (
-    <div style={{ position: 'relative', width: '100%', maxWidth: '600px' }}>
+    <div style={{ position: 'relative', width: '100%' }}>
       <HiOutlineSearch 
         size={20} 
         style={{ 
