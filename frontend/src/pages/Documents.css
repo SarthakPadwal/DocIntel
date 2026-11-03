@@ -1,0 +1,2 @@
+/* Reuses .data-table from Dashboard.css, handled globally or by standard classnames */
+@import './Dashboard.css';

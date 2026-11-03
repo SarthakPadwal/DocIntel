@@ -1,0 +1,75 @@
+/* Reuses styles from Login.css */
+@import './Login.css';
+
+/* Role Selector Cards */
+.role-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.role-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background-color: var(--bg-secondary);
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.25s ease;
+  color: var(--text-primary);
+}
+
+.role-option:hover {
+  border-color: var(--text-muted);
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.role-option strong {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 2px;
+}
+
+.role-option span {
+  display: block;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: normal;
+}
+
+.role-option.active.admin {
+  border-color: #f59e0b;
+  background-color: rgba(245, 158, 11, 0.08);
+}
+
+.role-option.active.admin svg {
+  color: #f59e0b;
+}
+
+.role-option.active.user {
+  border-color: var(--accent);
+  background-color: rgba(59, 130, 246, 0.08);
+}
+
+.role-option.active.user svg {
+  color: var(--accent);
+}
+
+/* Slide-in animation for conditional fields */
+.slide-in {
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -1,0 +1,56 @@
+.stat-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-3);
+}
+
+.stat-card-title {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-card-icon {
+  opacity: 0.8;
+}
+
+.stat-card-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: var(--space-1);
+}
+
+.stat-card-subtitle {
+  color: var(--text-secondary);
+  font-size: 13px;
+  margin-bottom: var(--space-4);
+}
+
+.stat-card-progress {
+  height: 4px;
+  background-color: var(--bg-secondary);
+  border-radius: 2px;
+  width: 100%;
+  margin-top: auto;
+}
+
+.stat-card-progress-bar {
+  height: 100%;
+  border-radius: 2px;
+}

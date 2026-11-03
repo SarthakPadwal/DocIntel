@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>DocIntel - Master Technical Architecture & Codebase Guide</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+    
+    @page {
+      size: A4;
+      margin: 18mm 16mm 18mm 16mm;
+      @bottom-right {
+        content: counter(page);
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: #1e293b;
+      background-color: #ffffff;
+      line-height: 1.6;
+      font-size: 13px;
+    }
+
+    .cover-page {
+      min-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      page-break-after: always;
+      padding: 60px 40px;
+      border-bottom: 3px solid #0284c7;
+    }
+
+    .cover-badge {
+      display: inline-block;
+      padding: 6px 14px;
+      background: #e0f2fe;
+      color: #0369a1;
+      font-weight: 700;
+      font-size: 12px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      border-radius: 6px;
+      width: fit-content;
+      margin-bottom: 24px;
+    }
+
+    .cover-title {
+      font-size: 38px;
+      font-weight: 800;
+      color: #0f172a;
+      line-height: 1.2;
+      margin-bottom: 16px;
+    }
+
+    .cover-subtitle {
+      font-size: 18px;
+      color: #475569;
+      font-weight: 400;
+      max-width: 650px;
+      line-height: 1.5;
+      margin-bottom: 40px;
+    }
+
+    .cover-meta {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      max-width: 500px;
+      border-top: 1px solid #e2e8f0;
+      padding-top: 30px;
+    }
+
+    .cover-meta-item .label {
+      font-size: 11px;
+      text-transform: uppercase;
+      color: #64748b;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .cover-meta-item .value {
+      font-size: 14px;
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    .container {
+      padding: 20px 0;
+    }
+
+    .page-break {
+      page-break-before: always;
+    }
+
+    h1 {
+      font-size: 24px;
+      font-weight: 800;
+      color: #0f172a;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 8px;
+      margin-top: 36px;
+      margin-bottom: 16px;
+      page-break-after: avoid;
+    }
+
+    h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #0369a1;
+      margin-top: 24px;
+      margin-bottom: 12px;
+      page-break-after: avoid;
+    }
+
+    h3 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-top: 16px;
+      margin-bottom: 8px;
+      page-break-after: avoid;
+    }
+
+    p {
+      margin-bottom: 12px;
+      color: #334155;
+    }
+
+    ul, ol {
+      margin-left: 20px;
+      margin-bottom: 14px;
+      color: #334155;
+    }
+
+    li {
+      margin-bottom: 6px;
+    }
+
+    pre, code {
+      font-family: 'JetBrains Mono', Consolas, Monaco, monospace;
+    }
+
+    code {
+      background: #f1f5f9;
+      color: #0f172a;
+      padding: 2px 5px;
+      border-radius: 4px;
+      font-size: 12px;
+      border: 1px solid #e2e8f0;
+    }
+
+    pre {
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 14px;
+      border-radius: 8px;
+      font-size: 11.5px;
+      line-height: 1.5;
+      overflow-x: auto;
+      margin-bottom: 16px;
+      page-break-inside: avoid;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+      font-size: 12px;
+      page-break-inside: avoid;
+    }
+
+    th, td {
+      border: 1px solid #cbd5e1;
+      padding: 8px 10px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f8fafc;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .badge-blue { background: #dbeafe; color: #1e40af; }
+    .badge-green { background: #dcfce7; color: #166534; }
+    .badge-amber { background: #fef3c7; color: #92400e; }
+    .badge-red { background: #fee2e2; color: #991b1b; }
+    .badge-purple { background: #f3e8ff; color: #6b21a8; }
+
+    .callout {
+      border-left: 4px solid #0284c7;
+      background: #f0f9ff;
+      padding: 12px 16px;
+      border-radius: 0 6px 6px 0;
+      margin-bottom: 16px;
+      page-break-inside: avoid;
+    }
+
+    .callout-title {
+      font-weight: 700;
+      color: #0369a1;
+      margin-bottom: 4px;
+      font-size: 13px;
+    }
+
+    .diagram-box {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      line-height: 1.4;
+      white-space: pre;
+      overflow-x: auto;
+      color: #0f172a;
+      page-break-inside: avoid;
+    }
+
+    .file-header {
+      background: #f1f5f9;
+      border-left: 4px solid #3b82f6;
+      padding: 8px 12px;
+      font-weight: 700;
+      font-size: 13px;
+      margin-top: 14px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- COVER PAGE -->
+  <div class="cover-page">
+    <div class="cover-badge">Complete Architectural & Codebase Guide</div>
+    <div class="cover-title">DocIntel Platform</div>
+    <div class="cover-subtitle">
+      AI-Powered Document Intelligence & Corporate Lifecycle Platform.<br>
+      An exhaustive file-by-file specification, database blueprint, server execution manual, and systems reference guide.
+    </div>
+    <div class="cover-meta">
+      <div class="cover-meta-item">
+        <div class="label">Architecture Version</div>
+        <div class="value">v4.8 Multi-Tier Hybrid</div>
+      </div>
+      <div class="cover-meta-item">
+        <div class="label">Date Compiled</div>
+        <div class="value">October 2026</div>
+      </div>
+      <div class="cover-meta-item">
+        <div class="label">Core Stack</div>
+        <div class="value">Node.js + Python + React + MySQL</div>
+      </div>
+      <div class="cover-meta-item">
+        <div class="label">Environment</div>
+        <div class="value">Windows / Localhost Enterprise</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <!-- SECTION 1 -->
+    <h1>1. Executive Architecture Overview</h1>
+    <p>
+      DocIntel is a centralized company document intelligence and lifecycle management platform.
+      It ingests unstructured and structured physical documents (Invoices, Quotations, Tenders, Purchase Orders, Agreements),
+      extracts business-critical metadata via Optical Character Recognition (OCR) and heuristics,
+      persists relational records in MySQL, and delivers executive dashboards with real-time deadline and audit tracking.
+    </p>
+
+    <div class="diagram-box">
++-----------------------------------------------------------------------------------+
+|                           FRONTEND: REACT 18 + VITE                               |
+|                  Port 5173 | Single-Page Application (SPA)                        |
+|                                                                                   |
+|  [Dashboard]  [Documents]  [DocumentDetails]  [Upload]  [Search]  [Dates] [Admin]  |
+|         |                                                             |           |
+|         +----------------------- Axios Interceptor -------------------+           |
+|                               (Bearer JWT Token)                                  |
++-----------------------------------------------------------------------------------+
+                                        |  REST API Requests (JSON / Multipart)
+                                        v
++-----------------------------------------------------------------------------------+
+|                        BACKEND: NODE.JS (EXPRESS 4)                               |
+|                            Port 5000 | Core API Gateway                           |
+|                                                                                   |
+|  [Auth Middleware] -> [Controllers] -> [Services] -> [MySQL Pool (mysql2/promise)]|
+|                                  |                                                |
+|                                  | Multi-part form upload -> Local Disk Storage   |
+|                                  | Axios Proxy / Forwarding                       |
++-----------------------------------------------------------------------------------+
+                                        | HTTP POST /process (File Path & Doc ID)
+                                        v
++-----------------------------------------------------------------------------------+
+|                   AI ENGINE: PYTHON 3.12 (FASTAPI + UVICORN)                     |
+|                             Port 8000 | Microservice                              |
+|                                                                                   |
+|   [Tesseract OCR] -> [Text Extractor] -> [Classifier] -> [Information Extractor]  |
+|   (CV2 Preprocess)    (PDF / PNG / JPG)   (Keyword Scoring) (Regex GST/Dates/KV)  |
++-----------------------------------------------------------------------------------+
+                                        |
+                                        v
++-----------------------------------------------------------------------------------+
+|                             DATABASE: MYSQL 8.0+                                  |
+|                             Port 3306 | Schema: docintel                          |
+|                                                                                   |
+|   [users] <--- [documents] <=== (1:1) ===> [document_information]                 |
+|                   |                                                               |
+|                   +---> [document_history]                                        |
+|   [users] ------------> [search_history]                                          |
++-----------------------------------------------------------------------------------+
+    </div>
+
+    <!-- SECTION 2 -->
+    <div class="page-break"></div>
+    <h1>2. Server Orchestration & Startup Runbook</h1>
+    <p>To run the platform locally, four distinct services must be started in separate PowerShell terminals:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Service</th>
+          <th>Port</th>
+          <th>Technology</th>
+          <th>Exact Startup Command</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>1. MySQL Server</strong></td>
+          <td><code>3306</code></td>
+          <td>MySQL 8.0+</td>
+          <td><code>net start MySQL80</code> (or via XAMPP / Services panel)</td>
+        </tr>
+        <tr>
+          <td><strong>2. Python AI Service</strong></td>
+          <td><code>8000</code></td>
+          <td>FastAPI / Uvicorn</td>
+          <td><code>cd "python-service"; .\venv\Scripts\Activate.ps1; uvicorn app:app --host 0.0.0.0 --port 8000 --reload</code></td>
+        </tr>
+        <tr>
+          <td><strong>3. Node.js Backend</strong></td>
+          <td><code>5000</code></td>
+          <td>Express.js</td>
+          <td><code>cd "backend"; npm run dev</code></td>
+        </tr>
+        <tr>
+          <td><strong>4. React Frontend</strong></td>
+          <td><code>5173</code></td>
+          <td>Vite + React 18</td>
+          <td><code>cd "frontend"; npm run dev</code></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <div class="callout-title">Health Check Endpoints:</div>
+      <p style="margin:0;">
+        • <strong>Node.js Backend</strong>: <code>http://localhost:5000/api/health</code> &rarr; <code>{"success": true, "message": "DocIntel API is running"}</code><br>
+        • <strong>Python Service</strong>: <code>http://localhost:8000/health</code> &rarr; <code>{"status": "ok", "service": "DocIntel Python AI Service"}</code><br>
+        • <strong>Web Application</strong>: <code>http://localhost:5173</code>
+      </p>
+    </div>
+
+    <!-- SECTION 3 -->
+    <div class="page-break"></div>
+    <h1>3. Database Architecture (`database/`)</h1>
+    <p>DocIntel stores data across 5 core relational tables in MySQL (Database name: <code>docintel</code>).</p>
+
+    <div class="file-header">
+      <span>database/schema.sql</span>
+      <span class="badge badge-blue">DDL Blueprint</span>
+    </div>
+    <p>
+      Creates the schema and 5 relational tables with cascading constraints and high-efficiency indexes on search paths:
+    </p>
+    <ul>
+      <li><code>users</code>: Authentication identities, bcrypt salted passwords, and Role-Based Access Control (<code>USER</code>, <code>ADMIN</code>).</li>
+      <li><code>documents</code>: Physical file metadata, storage location on disk, workflow status (<code>PENDING</code>, <code>DONE</code>), processing state (<code>UPLOADED</code>, <code>PROCESSING</code>, <code>PROCESSED</code>, <code>FAILED</code>), issue and due dates, soft-deletion attributes.</li>
+      <li><code>document_information</code>: 1-to-1 extension table holding AI-extracted entities (Vendor name, GSTIN, PAN, document number, financial amount, executive summary, bullet points, and raw OCR text).</li>
+      <li><code>search_history</code>: Logs search queries, applied filters, and result counts per user for instant recall and suggestion chips.</li>
+      <li><code>document_history</code>: Comprehensive enterprise audit trail capturing all lifecycle events (<code>UPLOAD</code>, <code>VIEW</code>, <code>SEARCH</code>, <code>UPDATE_STATUS</code>, <code>EDIT_META</code>, <code>DELETE</code>).</li>
+    </ul>
+
+    <div class="file-header">
+      <span>database/seed.sql</span>
+      <span class="badge badge-green">Seed Records</span>
+    </div>
+    <p>
+      Populates the database with realistic corporate seed records, including an initial administrator account (<code>admin@docintel.com</code>), default employee accounts, and pre-indexed sample invoices and tenders.
+    </p>
+
+    <!-- SECTION 4 -->
+    <div class="page-break"></div>
+    <h1>4. Python OCR & AI Intelligence Engine (`python-service/`)</h1>
+    <p>
+      A standalone microservice that processes document files, converts images/PDFs into text, determines document categories, and extracts structured key-value attributes.
+    </p>
+
+    <div class="file-header">
+      <span>python-service/app.py</span>
+      <span class="badge badge-purple">FastAPI Entrypoint</span>
+    </div>
+    <p>
+      Initializes the FastAPI application, sets up CORS origins, exposes <code>GET /health</code>, and serves <code>POST /process</code>.
+      Receives <code>{ "document_id": int, "file_path": str }</code>, invokes the processing pipeline, and returns the structured extraction payload.
+    </p>
+
+    <div class="file-header">
+      <span>python-service/processing/text_extractor.py</span>
+      <span class="badge badge-purple">Text Extractor</span>
+    </div>
+    <p>
+      Performs multi-format document ingestion:
+    </p>
+    <ul>
+      <li><strong>PDF Processing</strong>: Uses <code>pdfplumber</code> and <code>PyPDF2</code> for digital text. If a PDF contains scanned images or yields fewer than 50 characters, it converts pages to high-resolution images for OCR fallback.</li>
+      <li><strong>Image Processing</strong>: Utilizes OpenCV (<code>cv2</code>) for computer vision preprocessing (grayscale conversion, Gaussian bilateral filtering, adaptive Otsu thresholding), then runs <code>pytesseract.image_to_string()</code>.</li>
+      <li><strong>Tesseract Detection</strong>: Automatically scans Windows paths (<code>C:\Program Files\Tesseract-OCR\tesseract.exe</code>) to configure the OCR binary without requiring manual environment path setup.</li>
+    </ul>
+
+    <div class="file-header">
+      <span>python-service/processing/classifier.py</span>
+      <span class="badge badge-purple">Classification Engine</span>
+    </div>
+    <p>
+      Evaluates extracted text using weighted keyword matching and regular expressions to classify documents into:
+      <code>Invoice</code>, <code>Quotation</code>, <code>Tender</code>, <code>Purchase Document</code>, <code>Agreement</code>, or <code>Other</code>.
+    </p>
+
+    <div class="file-header">
+      <span>python-service/processing/information_extractor.py</span>
+      <span class="badge badge-purple">Entity Extractor</span>
+    </div>
+    <p>
+      Extracts structured key-value entities:
+    </p>
+    <ul>
+      <li><strong>GSTIN Regex</strong>: <code>\b[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}\b</code></li>
+      <li><strong>PAN Regex</strong>: <code>\b[A-Z]{5}[0-9]{4}[A-Z]{1}\b</code></li>
+      <li><strong>Monetary Totals</strong>: Captures currency symbols and comma-formatted decimal amounts.</li>
+      <li><strong>Dates & Deadlines</strong>: Robust date parser supporting international and Indian formats (DD/MM/YYYY, YYYY-MM-DD, DD-Mon-YYYY).</li>
+      <li><strong>Summary Synthesizer</strong>: Automatically generates an executive synopsis summarizing the company, document purpose, financial commitment, and deadline.</li>
+    </ul>
+
+    <!-- SECTION 5 -->
+    <div class="page-break"></div>
+    <h1>5. Node.js Express API & Business Layer (`backend/`)</h1>
+
+    <div class="file-header">
+      <span>backend/src/server.js</span>
+      <span class="badge badge-blue">API Entrypoint</span>
+    </div>
+    <p>
+      Configures Express, CORS, JSON/urlencoded body parsing, static file serving (<code>/uploads</code> directory), router mounting, and error handling middleware on port 5000.
+    </p>
+
+    <div class="file-header">
+      <span>backend/src/config/db.js</span>
+      <span class="badge badge-blue">Database Pool</span>
+    </div>
+    <p>
+      Creates an asynchronous connection pool using <code>mysql2/promise</code> with connection pooling (10 connections limit).
+      Provides connection validation and connection lifecycle management.
+    </p>
+
+    <div class="file-header">
+      <span>backend/src/middleware/authMiddleware.js & roleMiddleware.js</span>
+      <span class="badge badge-amber">Security Guards</span>
+    </div>
+    <p>
+      • <code>authMiddleware</code>: Validates <code>Bearer JWT</code> tokens from the HTTP Authorization header and attaches the authenticated user payload to <code>req.user</code>.<br>
+      • <code>roleMiddleware</code>: Restricts administrative endpoints strictly to users with <code>role = 'ADMIN'</code>.
+    </p>
+
+    <div class="file-header">
+      <span>backend/src/services/documentService.js</span>
+      <span class="badge badge-blue">Core Business Logic</span>
+    </div>
+    <p>
+      Central business service containing:
+    </p>
+    <ul>
+      <li><code>getStats()</code>: <strong>Unified Dashboard Statistics</strong>. Computes real-time counts across the database: Total Documents, Pending Processing, Upcoming Deadlines (within 14 days), Overdue Documents (past due dates where status &ne; 'DONE'), and Purge Queue count.</li>
+      <li><code>getDocuments()</code>: Dynamic parameterized SQL query builder with search queries, document type facets, date sorting, and pagination.</li>
+      <li><code>updateDocument()</code>: In-line metadata updates, committing changes to both <code>documents</code> and <code>document_information</code> and recording audit logs.</li>
+      <li><code>deleteDocument()</code>: Safe soft-deletion with audit logging.</li>
+    </ul>
+
+    <div class="file-header">
+      <span>backend/src/services/pythonProcessingService.js</span>
+      <span class="badge badge-blue">AI Service Bridge</span>
+    </div>
+    <p>
+      Issues asynchronous HTTP requests from Node.js to Python (<code>http://localhost:8000/process</code>).
+      Upon receiving AI extraction results, updates <code>document_information</code> via SQL UPSERT and marks the document as <code>PROCESSED</code>.
+    </p>
+
+    <!-- SECTION 6 -->
+    <div class="page-break"></div>
+    <h1>6. Frontend UI/UX Architecture (`frontend/`)</h1>
+
+    <div class="file-header">
+      <span>frontend/src/context/AuthContext.jsx & services/api.js</span>
+      <span class="badge badge-green">State & API Interceptor</span>
+    </div>
+    <p>
+      • <code>AuthContext</code>: Manages login/logout states, stores JWT tokens in <code>localStorage</code>, and provides user context across all routes.<br>
+      • <code>api.js</code>: Centralized Axios instance with request interceptors attaching Bearer tokens and response error handling.
+    </p>
+
+    <div class="file-header">
+      <span>frontend/src/pages/Dashboard.jsx</span>
+      <span class="badge badge-green">Executive Dashboard</span>
+    </div>
+    <p>
+      Displays 4 top stat cards (<code>TOTAL VOLUME</code>, <code>ACTION QUEUE</code>, <code>UPCOMING PIPELINE</code>, <code>URGENT ATTENTION</code>) directly correlated with backend metrics.
+      Renders the recent documents table with live status filter tabs (<code>All</code>, <code>Pending</code>, <code>Upcoming</code>, <code>Done</code>).
+    </p>
+
+    <div class="file-header">
+      <span>frontend/src/pages/DocumentDates.jsx</span>
+      <span class="badge badge-green">Milestone & Chronometry Ledger</span>
+    </div>
+    <p>
+      A dedicated deadline management screen featuring:
+    </p>
+    <ul>
+      <li><strong>3 Stat Cards</strong>: <code>UPCOMING DEADLINES</code>, <code>PENDING & SCHEDULED</code>, <code>OVERDUE DOCUMENTS</code>.</li>
+      <li><strong>3-Column Kanban Board</strong>:
+        <br>&bull; Column 1: <em>Upcoming Deadlines</em> (Due within 1 to 2 weeks).
+        <br>&bull; Column 2: <em>Pending & Scheduled</em> (Awaiting review or scheduled future milestones).
+        <br>&bull; Column 3: <em>Recently Due / Overdue</em> (Passed cutoff dates requiring immediate resolution).
+      </li>
+    </ul>
+
+    <div class="file-header">
+      <span>frontend/src/pages/DocumentDetails.jsx</span>
+      <span class="badge badge-green">Inspection & In-Line Editor</span>
+    </div>
+    <p>
+      Provides a side-by-side view featuring an embedded document preview (PDF/Image) alongside an editable metadata form (Company Name, GSTIN, Due Date, Financial Amount, Status Toggle). Includes the <strong>Save to Database</strong> button which persists changes directly to MySQL.
+    </p>
+
+    <div class="file-header">
+      <span>frontend/src/pages/History.jsx</span>
+      <span class="badge badge-green">Single-Screen Executive Console</span>
+    </div>
+    <p>
+      Designed to fit in a single viewport:
+      <br>&bull; <strong>Left Column</strong>: Recent Searches with quick search input and clickable query tags.
+      <br>&bull; <strong>Right Column</strong>: Recent Activity showing distinct, condensed business events.
+      <br>&bull; <strong>Audit Trail Modal</strong>: An on-demand modal explorer with full audit records and category filters.
+    </p>
+
+    <div class="file-header">
+      <span>frontend/src/pages/AdminManagement.jsx</span>
+      <span class="badge badge-green">Administrator Console</span>
+    </div>
+    <p>
+      Full management interface with 4 unified stat cards (<code>INDEXED FILES</code>, <code>PENDING AUDIT</code>, <code>OVERDUE ESCALATIONS</code>, <code>VERIFIED / DONE</code>), search and filter controls, editable metadata drawer, soft delete, and CSV export.
+    </p>
+
+    <!-- SECTION 7 -->
+    <div class="page-break"></div>
+    <h1>7. Complete REST API Endpoints Specification</h1>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Method</th>
+          <th>Endpoint</th>
+          <th>Auth Level</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="badge badge-blue">POST</span></td>
+          <td><code>/api/auth/register</code></td>
+          <td>Public</td>
+          <td>Register a new user account with role, department, and designation</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-blue">POST</span></td>
+          <td><code>/api/auth/login</code></td>
+          <td>Public</td>
+          <td>Verify credentials and return a signed 7-day JWT token</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-green">GET</span></td>
+          <td><code>/api/auth/me</code></td>
+          <td>Bearer JWT</td>
+          <td>Fetch profile and identity details of current authenticated user</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-green">GET</span></td>
+          <td><code>/api/documents</code></td>
+          <td>Bearer JWT</td>
+          <td>Fetch paginated documents with search, category, and status filters</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-blue">POST</span></td>
+          <td><code>/api/documents/upload</code></td>
+          <td>Bearer JWT</td>
+          <td>Upload physical document (PDF/Image), save to disk, and trigger AI processing</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-green">GET</span></td>
+          <td><code>/api/documents/stats</code></td>
+          <td>Bearer JWT</td>
+          <td>Retrieve unified repository statistics (total, pending, upcoming, overdue)</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-green">GET</span></td>
+          <td><code>/api/documents/:id</code></td>
+          <td>Bearer JWT</td>
+          <td>Fetch complete document metadata and AI extracted key-values</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-amber">PUT</span></td>
+          <td><code>/api/documents/:id</code></td>
+          <td>Bearer JWT</td>
+          <td>Update document metadata (company name, dates, amount, status)</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-red">DELETE</span></td>
+          <td><code>/api/documents/:id</code></td>
+          <td>Admin JWT</td>
+          <td>Perform safe soft-delete of document record</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-green">GET</span></td>
+          <td><code>/api/history/search</code></td>
+          <td>Bearer JWT</td>
+          <td>Retrieve recent search queries for current user</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-blue">POST</span></td>
+          <td><code>/api/history/search</code></td>
+          <td>Bearer JWT</td>
+          <td>Log search query and result count with automatic deduplication</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-green">GET</span></td>
+          <td><code>/api/history/activity</code></td>
+          <td>Bearer JWT</td>
+          <td>Fetch repository audit trail history</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-green">GET</span></td>
+          <td><code>/api/users</code></td>
+          <td>Admin JWT</td>
+          <td>List all enterprise user accounts</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-blue">POST</span></td>
+          <td><code>/process</code> (Python :8000)</td>
+          <td>Internal</td>
+          <td>Trigger Tesseract OCR, classification, and entity extraction pipeline</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- SECTION 8 -->
+    <div class="page-break"></div>
+    <h1>8. Critical Algorithms, Calculations & Problem-Solving Ledger</h1>
+
+    <h3>1. Unified Overdue Calculation</h3>
+    <div class="callout">
+      <div class="callout-title">The Problem:</div>
+      <p>
+        The Dashboard previously hardcoded overdue documents to 0, while the top notification banner showed 2 overdue documents and Document Dates showed 2 overdue documents.
+      </p>
+      <div class="callout-title">The Solution:</div>
+      <p style="margin:0;">
+        Implemented a single SQL query in <code>documentService.js</code> checking:
+        <code>(COALESCE(d.due_date, di.due_date) &lt; CURDATE() OR d.status = 'FAILED') AND d.status != 'DONE'</code>.
+        Documents already marked <code>DONE</code> are never flagged as overdue blockers.
+      </p>
+    </div>
+
+    <h3>2. Upcoming Deadlines Window (1–2 Weeks)</h3>
+    <p>
+      Defines upcoming deadlines as active documents with due dates between today and 14 days in the future:
+      <code>COALESCE(d.due_date, di.due_date) BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 14 DAY) AND d.status != 'DONE'</code>.
+    </p>
+
+    <h3>3. Search Logging & Deduplication</h3>
+    <p>
+      Repeated searches within short intervals update the existing query's timestamp rather than polluting the database with identical entries, ensuring a clean history feed.
+    </p>
+
+    <h3>4. Activity Feed Throttling</h3>
+    <p>
+      Repeated document view events by the same user within 5 minutes are throttled at the API level, preventing spam in the audit logs while maintaining accurate access counts.
+    </p>
+
+    <div style="margin-top: 40px; border-top: 1px solid #cbd5e1; padding-top: 16px; font-size: 11px; color: #64748b; text-align: center;">
+      DocIntel &mdash; AI Document Intelligence Platform &bull; Master Architecture & Codebase Guide
+    </div>
+
+  </div>
+
+</body>
+</html>
