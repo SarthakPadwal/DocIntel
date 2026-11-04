@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { getDocuments, deleteDocument, updateDocument } from '../services/api';
 import Loading from '../components/Loading';
 import EmptyState from '../components/EmptyState';
@@ -123,7 +124,7 @@ const AdminManagement = () => {
             <HiOutlineShieldCheck size={18} /> Role: Administrator (Full Access)
           </div>
           <br/>
-          <button className="btn btn-secondary" onClick={() => window.location.href = '/upload'}>+ Register Intake</button>
+          <Link to="/upload" className="btn btn-secondary">+ Register Intake</Link>
         </div>
       </div>
 

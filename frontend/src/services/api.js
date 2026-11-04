@@ -111,7 +111,7 @@ api.interceptors.response.use(
           id: 1,
           name: 'John Doe',
           email: 'admin@docintel.com',
-          phone: '+1 (555) 019-8234',
+          phone: '9876543210',
           role: 'ADMIN',
           department: 'Executive Administration',
           designation: 'Root System Administrator'
@@ -174,13 +174,241 @@ api.interceptors.response.use(
         });
       }
 
-      if (url.includes('/documents')) {
+      // Helper function to get combined documents list (custom uploaded + samples)
+      const getAllDocumentsList = () => {
+        let customDocs = [];
+        try {
+          const raw = localStorage.getItem('docintel_custom_documents');
+          if (raw) customDocs = JSON.parse(raw);
+        } catch (e) {}
+        return [...customDocs, ...sampleDocuments];
+      };
+
+      // 1. Download/View original file blob
+      if (url.match(/\/documents\/\d+\/file/)) {
+        const dummyPdf = new Blob(
+          ['%PDF-1.4\n1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n3 0 obj\n<< /Type /Page /Parent 2 0 R /Resources << /Font << /F1 4 0 R >> >> /MediaBox [0 0 612 792] /Contents 5 0 R >>\nendobj\n4 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\n5 0 obj\n<< /Length 68 >>\nstream\nBT\n/F1 18 Tf\n100 700 Td\n(DocIntel Verified Enterprise Document Record) Tj\nET\nendstream\nendobj\nxref\n0 6\n0000000000 65535 f \n0000000010 00000 n \n0000000060 00000 n \n0000000117 00000 n \n0000000224 00000 n \n0000000305 00000 n \ntrailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n424\n%%EOF'],
+          { type: 'application/pdf' }
+        );
+        return Promise.resolve({ data: dummyPdf });
+      }
+
+      // 2. Single Document Details (GET /documents/:id, e.g. /documents/3)
+      const singleDocMatch = url.match(/\/documents\/(\d+)$/);
+      if (singleDocMatch && (!error.config?.method || error.config.method.toLowerCase() === 'get')) {
+        const docId = parseInt(singleDocMatch[1], 10);
+        const allDocs = getAllDocumentsList();
+        const found = allDocs.find(d => Number(d.id) === docId) || allDocs.find(d => String(d.id) === String(docId)) || allDocs[0];
+        
         return Promise.resolve({
           data: {
             success: true,
             data: {
-              documents: sampleDocuments,
-              pagination: { total: sampleDocuments.length, page: 1, totalPages: 1 }
+              document: {
+                ...found,
+                extracted_text: found.extracted_text || `DOCUMENT AUDIT & ATTRIBUTE SUMMARY\n\nDocument ID: DOC-${String(found.id).padStart(4, '0')}\nOriginal Filename: ${found.original_filename}\nCompany Entity: ${found.company_name || 'Enterprise Associate'}\nClassification: ${found.document_type || 'General'}\nDocument Date: ${found.document_date || found.uploaded_at || '2026-10-15'}\nDue Date: ${found.due_date || '2026-11-14'}\nLifecycle Status: ${found.status}\nInvoice Amount: ${found.currency === 'USD' ? '$' : '₹'}${found.amount ? Number(found.amount).toLocaleString() : '48,500.00'}\nTax Identifier / GSTIN: 27AABCT3518Q1ZV\nPayment Milestone Terms: Net 30 Days\nAudit Clearance: SEC-LVL-4 Verified\nDigital Seal: Validated Integrity Checksum SHA-256`,
+                raw_text: found.raw_text || `Document Index: ${found.original_filename}\nOrganization: ${found.company_name}\nType: ${found.document_type}\nStatus: ${found.status}`,
+                file_path: found.file_path || `uploads/documents/${found.original_filename}`
+              }
+            }
+          }
+        });
+      }
+
+      // 3. Upload Document (POST /documents)
+      if (url.includes('/documents') && error.config?.method?.toLowerCase() === 'post') {
+        let uploadedFilename = 'Uploaded_Document_' + new Date().toISOString().slice(0, 10) + '.pdf';
+        let docType = 'Invoice';
+        let dueDate = new Date(Date.now() + 14 * 24 * 3600 * 1000).toISOString().slice(0, 10);
+        let company = 'Enterprise Intake';
+
+        if (error.config?.data instanceof FormData) {
+          const fileObj = error.config.data.get('document');
+          if (fileObj && fileObj.name) uploadedFilename = fileObj.name;
+          if (error.config.data.get('document_type')) docType = error.config.data.get('document_type');
+          if (error.config.data.get('due_date')) dueDate = error.config.data.get('due_date');
+        }
+
+        const newDocId = Date.now();
+        const newDoc = {
+          id: newDocId,
+          original_filename: uploadedFilename,
+          document_type: docType,
+          status: 'PENDING',
+          processing_status: 'PROCESSED',
+          company_name: company,
+          info_document_date: new Date().toISOString().slice(0, 10),
+          info_due_date: dueDate,
+          document_date: new Date().toISOString().slice(0, 10),
+          due_date: dueDate,
+          created_at: new Date().toISOString(),
+          uploaded_at: new Date().toISOString(),
+          file_size: 245000,
+          extracted_text: `DOCUMENT AUDIT & ATTRIBUTE SUMMARY\n\nDocument ID: DOC-${String(newDocId).slice(-4)}\nOriginal Filename: ${uploadedFilename}\nCompany Entity: ${company}\nClassification: ${docType}\nDocument Date: ${new Date().toISOString().slice(0, 10)}\nDue Date: ${dueDate}\nLifecycle Status: PENDING\nAudit Clearance: Verified Intake Registration`,
+          raw_text: `Document Intake: ${uploadedFilename}\nType: ${docType}\nStatus: PENDING`
+        };
+
+        // Persist to custom documents in localStorage
+        let customDocs = [];
+        try {
+          const raw = localStorage.getItem('docintel_custom_documents');
+          if (raw) customDocs = JSON.parse(raw);
+        } catch (e) {}
+        customDocs.unshift(newDoc);
+        localStorage.setItem('docintel_custom_documents', JSON.stringify(customDocs));
+
+        // Also add to recent activity
+        let activities = [];
+        try {
+          const rawAct = localStorage.getItem('docintel_recent_activity');
+          if (rawAct) activities = JSON.parse(rawAct);
+        } catch (e) {}
+        activities.unshift({
+          id: Date.now(),
+          action: 'UPLOAD',
+          document_name: newDoc.original_filename,
+          document_id: newDoc.id,
+          company_name: newDoc.company_name,
+          created_at: new Date().toISOString(),
+          user_role: 'ADMIN'
+        });
+        localStorage.setItem('docintel_recent_activity', JSON.stringify(activities));
+
+        return Promise.resolve({
+          data: {
+            success: true,
+            message: 'Document uploaded successfully',
+            data: { document: newDoc }
+          }
+        });
+      }
+
+      // 4. Update Document (PUT /documents/:id)
+      if (url.match(/\/documents\/\d+/) && error.config?.method?.toLowerCase() === 'put') {
+        let updates = {};
+        try {
+          updates = typeof error.config.data === 'string' ? JSON.parse(error.config.data) : (error.config.data || {});
+        } catch (e) {}
+
+        const docId = parseInt(url.match(/\/documents\/(\d+)/)[1], 10);
+        let customDocs = [];
+        try {
+          const raw = localStorage.getItem('docintel_custom_documents');
+          if (raw) customDocs = JSON.parse(raw);
+        } catch (e) {}
+
+        const index = customDocs.findIndex(d => Number(d.id) === docId);
+        let updatedDoc = null;
+        if (index !== -1) {
+          customDocs[index] = { ...customDocs[index], ...updates };
+          updatedDoc = customDocs[index];
+          localStorage.setItem('docintel_custom_documents', JSON.stringify(customDocs));
+        } else {
+          const sampleFound = sampleDocuments.find(d => Number(d.id) === docId) || sampleDocuments[0];
+          updatedDoc = { ...sampleFound, ...updates };
+        }
+
+        return Promise.resolve({
+          data: {
+            success: true,
+            message: 'Document updated successfully',
+            data: { document: updatedDoc }
+          }
+        });
+      }
+
+      // 5. Delete Document (DELETE /documents/:id)
+      if (url.match(/\/documents\/\d+/) && error.config?.method?.toLowerCase() === 'delete') {
+        const docId = parseInt(url.match(/\/documents\/(\d+)/)[1], 10);
+        let customDocs = [];
+        try {
+          const raw = localStorage.getItem('docintel_custom_documents');
+          if (raw) customDocs = JSON.parse(raw);
+        } catch (e) {}
+        customDocs = customDocs.filter(d => Number(d.id) !== docId);
+        localStorage.setItem('docintel_custom_documents', JSON.stringify(customDocs));
+
+        return Promise.resolve({
+          data: {
+            success: true,
+            message: 'Document deleted successfully'
+          }
+        });
+      }
+
+      // 6. Get Documents List with Real Search, Priority Matching, Filter, and Sort (GET /documents)
+      if (url.includes('/documents')) {
+        const params = error.config?.params || {};
+        const searchTerm = (params.search || '').trim().toLowerCase();
+        const typeFilter = (params.document_type || '').trim().toLowerCase();
+        const statusFilter = (params.status || '').trim().toLowerCase();
+        const sortOption = (params.sort || 'newest').trim().toLowerCase();
+
+        let docs = getAllDocumentsList();
+
+        // Filter by Document Type
+        if (typeFilter) {
+          docs = docs.filter(d => (d.document_type || '').toLowerCase() === typeFilter);
+        }
+
+        // Filter by Status
+        if (statusFilter) {
+          docs = docs.filter(d => (d.status || '').toLowerCase() === statusFilter);
+        }
+
+        // Search & Priority Ranking
+        if (searchTerm) {
+          docs = docs.filter(d => {
+            const fname = (d.original_filename || '').toLowerCase();
+            const comp = (d.company_name || '').toLowerCase();
+            const dtype = (d.document_type || '').toLowerCase();
+            const dstatus = (d.status || '').toLowerCase();
+            const did = String(d.id || '');
+            return fname.includes(searchTerm) || comp.includes(searchTerm) || dtype.includes(searchTerm) || dstatus.includes(searchTerm) || did.includes(searchTerm);
+          });
+
+          // Prioritize exact/prefix matches to appear at position 0!
+          // (e.g. searching 'nexus' places 'Nexus Supply Chain' / 'Nexus Tech Supplies' first)
+          docs.sort((a, b) => {
+            const aComp = (a.company_name || '').toLowerCase();
+            const bComp = (b.company_name || '').toLowerCase();
+            const aName = (a.original_filename || '').toLowerCase();
+            const bName = (b.original_filename || '').toLowerCase();
+
+            const aStarts = aComp.startsWith(searchTerm) || aName.startsWith(searchTerm);
+            const bStarts = bComp.startsWith(searchTerm) || bName.startsWith(searchTerm);
+            if (aStarts && !bStarts) return -1;
+            if (!aStarts && bStarts) return 1;
+
+            const aIndex = Math.min(
+              aComp.indexOf(searchTerm) !== -1 ? aComp.indexOf(searchTerm) : 999,
+              aName.indexOf(searchTerm) !== -1 ? aName.indexOf(searchTerm) : 999
+            );
+            const bIndex = Math.min(
+              bComp.indexOf(searchTerm) !== -1 ? bComp.indexOf(searchTerm) : 999,
+              bName.indexOf(searchTerm) !== -1 ? bName.indexOf(searchTerm) : 999
+            );
+            return aIndex - bIndex;
+          });
+        } else {
+          // If no search term, apply the chosen sort option
+          if (sortOption === 'newest') {
+            docs.sort((a, b) => new Date(b.uploaded_at || b.created_at || b.document_date || 0) - new Date(a.uploaded_at || a.created_at || a.document_date || 0));
+          } else if (sortOption === 'oldest') {
+            docs.sort((a, b) => new Date(a.uploaded_at || a.created_at || a.document_date || 0) - new Date(b.uploaded_at || b.created_at || b.document_date || 0));
+          } else if (sortOption === 'document_date') {
+            docs.sort((a, b) => new Date(b.document_date || b.info_document_date || b.uploaded_at || 0) - new Date(a.document_date || a.info_document_date || a.uploaded_at || 0));
+          } else if (sortOption === 'due_date') {
+            docs.sort((a, b) => new Date(a.due_date || a.info_due_date || '9999-12-31') - new Date(b.due_date || b.info_due_date || '9999-12-31'));
+          }
+        }
+
+        return Promise.resolve({
+          data: {
+            success: true,
+            data: {
+              documents: docs,
+              pagination: { total: docs.length, page: 1, totalPages: 1 }
             }
           }
         });

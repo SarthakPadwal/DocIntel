@@ -72,6 +72,11 @@ const Profile = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    if (name === 'phone') {
+      const digitsOnly = value.replace(/\D/g, '').slice(0, 10);
+      setFormData(prev => ({ ...prev, phone: digitsOnly }));
+      return;
+    }
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
@@ -79,6 +84,11 @@ const Profile = () => {
     e.preventDefault();
     if (!formData.name.trim()) {
       setStatusMessage({ type: 'error', text: 'Full Name is required.' });
+      return;
+    }
+
+    if (formData.phone && formData.phone.length !== 10) {
+      setStatusMessage({ type: 'error', text: 'Phone number must be exactly 10 digits.' });
       return;
     }
 
@@ -485,7 +495,7 @@ const Profile = () => {
               </div>
 
               <div className="form-group">
-                <label htmlFor="phone" className="form-label">Phone Number</label>
+                <label htmlFor="phone" className="form-label">Phone Number (10 Digits)</label>
                 <div className="input-with-icon">
                   <HiOutlinePhone className="input-icon" size={18} />
                   <input
@@ -494,11 +504,13 @@ const Profile = () => {
                     name="phone"
                     value={formData.phone}
                     onChange={handleInputChange}
-                    placeholder="+1 (555) 000-0000"
+                    placeholder="Enter 10-digit number (e.g. 9876543210)"
+                    maxLength={10}
+                    pattern="[0-9]{10}"
                     className="form-input"
                   />
                 </div>
-                <span className="form-help-text">Direct telephone or internal extension for compliance contact.</span>
+                <span className="form-help-text">Direct 10-digit telephone number for compliance contact (numbers only).</span>
               </div>
 
               <div className="form-group">

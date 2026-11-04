@@ -99,6 +99,12 @@ const getDocuments = async (filters) => {
   } else {
     sortClause = sortMap[filters.sort] || sortMap['newest'];
   }
+
+  if (filters.search && filters.search.trim()) {
+    const escapedSearch = pool.escape(`${filters.search.trim()}%`);
+    sortClause = `CASE WHEN di.company_name LIKE ${escapedSearch} THEN 0 WHEN d.original_filename LIKE ${escapedSearch} THEN 1 ELSE 2 END, ` + sortClause;
+  }
+
   query += ` ORDER BY ${sortClause}`;
 
   // Pagination
